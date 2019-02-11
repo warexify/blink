@@ -87,6 +87,12 @@ void __setupProcessEnv() {
   addCommandList([[NSBundle mainBundle] pathForResource:@"blinkCommandsDictionary" ofType:@"plist"]); // Load blink commands to ios_system
   __setupProcessEnv(); // we should call this after ios_system initializeEnvironment to override its defaults.
   
+  if (NSProcessInfo.processInfo.environment[@"BLINK_TEST"]) {
+    UIWindow *mainWindow = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    mainWindow.rootViewController = [[UIViewController alloc] init];
+    [mainWindow makeKeyAndVisible];
+    return YES;
+  }
   [[ScreenController shared] setup];
   return YES;
 }
