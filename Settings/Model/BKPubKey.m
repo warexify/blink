@@ -96,6 +96,17 @@ int __ssh_auth_callback (const char *prompt, char *buf, size_t len,
   return SSH_OK;
 }
 
+- (BOOL)isValidPrivateKey {
+  ssh_key ssh_key = NULL;
+  NSString *privKey = self.privateKey;
+  NSLog(@"%@", privKey);
+  int rc = ssh_pki_import_privkey_base64(privKey.UTF8String, NULL, NULL, NULL, &ssh_key);
+  if (ssh_key) {
+    ssh_key_free(ssh_key);
+  }
+  return rc == SSH_OK;
+}
+
 + (void)importPrivateKey:(NSString *)privateKey controller:(UIViewController *)controller andCallback: (void(^)(Pki *))callback
 {
   dispatch_async(dispatch_get_global_queue(0, 0), ^{

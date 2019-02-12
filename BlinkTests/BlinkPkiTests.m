@@ -44,7 +44,72 @@
   [self _testRSAGenWithLength:512];
   [self _testRSAGenWithLength:2048];
   [self _testRSAGenWithLength:4096];
-  [self _testRSAGenWithLength:-1096];
+}
+
+- (void)testRSAImport {
+  NSString * openSSH =
+@"-----BEGIN OPENSSH PRIVATE KEY-----\n\
+b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAABFwAAAAdzc2gtcn\n\
+NhAAAAAwEAAQAAAQEAsTFIg87NYDX/bCoYv4IZPyjWObI3IZNwNEHFsw8EWdVlKvYfaMhT\n\
+dWdESD4eVVDZms0UlleHO9d2H+OBuXRz2myUGlng8nW38pBaob0x0GpXHr1MqfSrq0MspH\n\
+NuOduYFe5asrptdzk1Tz17JJbcBC4pG3NRNmBHwAfLGVeH3vUlLhHI689d7HM7XXCsevWx\n\
+IFVYB9IE96MbPJd5rAxoNIWy3IN1AvmhTNUGLxBxUmuEJZBfguVZYd1WbbvvpsC6MJnxtg\n\
+gD+0Tp18fUr2PwW4IGocKWZcrJpc7MyqJfhwE1iFP0IzC6CFm3WCyGcEl0pZbx2pI9WKND\n\
+7NkOwpBcQQAAA9DQ8yFd0PMhXQAAAAdzc2gtcnNhAAABAQCxMUiDzs1gNf9sKhi/ghk/KN\n\
+Y5sjchk3A0QcWzDwRZ1WUq9h9oyFN1Z0RIPh5VUNmazRSWV4c713Yf44G5dHPabJQaWeDy\n\
+dbfykFqhvTHQalcevUyp9KurQyykc24525gV7lqyum13OTVPPXskltwELikbc1E2YEfAB8\n\
+sZV4fe9SUuEcjrz13scztdcKx69bEgVVgH0gT3oxs8l3msDGg0hbLcg3UC+aFM1QYvEHFS\n\
+a4QlkF+C5Vlh3VZtu++mwLowmfG2CAP7ROnXx9SvY/BbggahwpZlysmlzszKol+HATWIU/\n\
+QjMLoIWbdYLIZwSXSllvHakj1Yo0Ps2Q7CkFxBAAAAAwEAAQAAAQBonJQXXWzbNIYMMf5S\n\
+cli9dTqk7Zam+AjykTJLOL502wvThWOd1UeQtNsXW7VE4WrXfeR9rkdlCRvwT70y5JHRjv\n\
+ERbabk/qMPTjJz8uMKDP5KY7BzVsRTZGFi5dNZzU/JAuQBSRd/oALdOYsOWxKiVS5nynlU\n\
+BRvXP8Kkv4y0EEOSaR6BcYt8eSKHnbUvhwkP5V8lq+mpaHjdkUQBJYriAjx2jgIo2nz7Z2\n\
+BiODO32KJKsurJpeQigjfZPUCwAUBsScCVC28dELf/vgw0piOe8rqOeW6HQvxqPv5idjtP\n\
+wtebdVMFmbAzZjBUJNCyYqLlw+8S0qWZ8lfGa4Tp8N8BAAAAgQDVRdnIYsPOD5NsWDc4g0\n\
+AfgSa9lC+Zaf9Qne2gcFGdBscpr8aKO9dUPt/k/311jKp+B7B0Pm8fgPaGV31j/rPZgC6I\n\
+SYNArMZ31ugfGTVVEr3zErnLCuHNs6lUtQYj7y7lV/GGfBQkjR7gU14LCPh0W7rwM15SEt\n\
+tVaGT8K2tGmQAAAIEA31FAWhOKiXKAFiVzX8Oo9qp70NMrSeb9RIrv0bwxknxmcAiTM20I\n\
+01JkJe5/D7NefD9LLld1eoYTb3AMtgWyV4VZOWln4IdvPyIaCwkQ2ieAyLvnavqye/T51K\n\
++dek3/1IG9R3+drZg3QYjFYhiiY6DhH3Jr1+DLu6dQa42cHhkAAACBAMsf7gk6Iz09VwGJ\n\
+0acj4siMCcElEcLj2qzP6tCZK5trO5AMeo9Ls2tNfK5T78wQnJdzzKHbDpksJgoPrHXAD5\n\
+LTabWHRdZhwoZ5uJzF4d2qctJIEcLZUDof6UOTRh71AGCj1wWYqnwq9vPtzdlD6e+kkbDo\n\
+61llXpLuoD/EQKRpAAAAE3l1cnlAWXVyeXMtaU1hYy5sYW4BAgMEBQYH\n\
+-----END OPENSSH PRIVATE KEY-----\n\
+";
+  
+  NSString *rsaPKC1 =
+@"-----BEGIN RSA PRIVATE KEY-----\n\
+MIIEpAIBAAKCAQEAt92RfTD1hLdNrTor7967V+OSvjntMXaS6kHegwCZ6nW/Ysr7\n\
+amUwhNq/LTfcFt2YoUwQLdfXssxzFhQYwR+C7Z9jR66O2yhoedCB9erg9dTZAUBs\n\
+0fMZfsxsggJxVihUCelbQEAdof2zyqfwWnnJ37XpzoZIs1XHBZPXPM0cDVGzqd3t\n\
+QrzFWI6YSxyKHWEsyW9R9CjY5S8MppvJAyvn0XdF2u0uU5ouu9oaADln6aG45bvj\n\
+tilFXIFzeBIrlVR0HLGNqw3pNThTPuT1zwx7mfXDjYhAykxKpYFExBigsFQKa5En\n\
+lTj9nh8vMYorYlvworZf/zj32tDKCd19IIAc5QIDAQABAoIBAQC0vMKVU5kkuqNK\n\
+kxI5mrKB9Jx9DagRpUNJrzIxiFfEV7aoQGvf7FRDZFvk8TIR8AZnF8QXrELF6Z9/\n\
+poWm4XjsaG9JOVgIKrJ4e/QkbpxwSqh+SHwv7U20jPJk4k3SqZXioFco013NrPwd\n\
+S/RCm9FLbSDF+M5iKwGWg/tiMyVOGMJUcuR7CFXmX39l9Rnk2dGAqJmNo/seRHdl\n\
+sku8Kd8ttUjQ12ituS2BG7OzSEwQGb6cp0Oc84GC5MVcD6l5a5udob+mmJAIiVj8\n\
+fWefNR1dGEkfoCyCJddj5Y1W7Nkt2qsldubQOsvRkDhnWPHmkqgs/0ocGXo/xWNS\n\
+OaY6Z+xBAoGBAPUTUlyXtgYDyhL1dmqIzyiF6G00zq3Jx6YQL8SC1TzddQ8Hu8Dd\n\
+Et3rP5vFQLzD0MkvKhdct11cUcZVPboUIbkWqi3n3VSRBFAj4623Vd3+LmtPtueW\n\
+CDalL9bSknZFYimoZgIFf8wHKIVDLA6FAg6OCCGtOjWqpaTgw2eJF6DpAoGBAMAP\n\
+v8TobR3dbdBAMkWYCWNc4R0ifAOhXsdnkGt5+2Z0Wj9iT/72jIxba1pJlDzFGkYi\n\
+PHCkJ+V60QcDGVfKN2RFRz5puQvZ2hZEjbD7iUOwRuUQtcMGbkYUgFC78M5drEbj\n\
+cYugvaLfkI2fnhP3G2dzZO4v5s+hak7tPJtdej6dAoGBALQG44Oc9ltowTI4Giqc\n\
+IQD1jQ1bs086YGx+i3hhW18AlxLZbXR5cXiPbQRyW+HOPjrraJIMy63LOU7mIxfj\n\
+3fnmylA6eP28IVz1YDSl7m/KXjL6NbPdJF9v7LpzqJ80zK0pRPXLMFuiDoQGGgD4\n\
+d9BVSWfjplTx7Ag4C5KsxCyxAoGAa+1tul1SVCIGf6xTk8AoJmofJpwmTHP2KuAL\n\
+zBm0KJLh1BSPF5u8x3LoFMicQLoSVa8Pf8z/jnlB1UrshuTf070KmAwZLIuzfifv\n\
+57CyJhN9A2Qsf/exKDiFEtlKLO1+zicpu2kMp+Yx+SPlVRrbj3rNEPxiG/N9JfUy\n\
+xav18hECgYBvGOAFniWXBBA0mj+a1JS1ApAjRuv1AVOiAqSf7o6Hn4Upm2Z3Lz8n\n\
+Ou5Sc6I4YVgcWO9j8SJJaVoET2bx/71OE7na1EafDX2e1C+zmCCo4UGwakXOAHtG\n\
+zZ4qp35qc7XVEdHe9qJzzCJjDn4IE5QUh50drPcAbEpWpEobxGyJVA==\n\
+-----END RSA PRIVATE KEY-----\n\
+";
+  
+  [self _testRSAImport:rsaPKC1];
+  [self _testRSAImport:openSSH];
+  
 }
 
 - (void)_testRSAGenWithLength:(int) length {
@@ -58,8 +123,20 @@
                                   [NSString stringWithFormat:@"wait for RSA %@", @(length)]];
   [Pki importPrivateKey:pki.privateKey controller:nil andCallback:^(Pki *key) {
     XCTAssertNotNil(pki);
+    XCTAssertTrue(pki.isValidPrivateKey);
     [keyNotNil fulfill];
-    NSLog(@"bla %@", @(length));
+  }];
+  
+  XCTAssertEqual([XCTWaiter waitForExpectations:@[keyNotNil] timeout:0.5], XCTWaiterResultCompleted);
+}
+
+- (void)_testRSAImport:(NSString *)key {
+  XCTestExpectation *keyNotNil = [[XCTestExpectation alloc] initWithDescription:@"wait for RSA"];
+  [Pki importPrivateKey:key controller:nil andCallback:^(Pki *pki) {
+    XCTAssertNotNil(pki);
+    XCTAssertEqualObjects(pki.keyTypeName, @"RSA");
+    XCTAssertTrue(pki.isValidPrivateKey);
+    [keyNotNil fulfill];
   }];
   
   XCTAssertEqual([XCTWaiter waitForExpectations:@[keyNotNil] timeout:0.5], XCTWaiterResultCompleted);

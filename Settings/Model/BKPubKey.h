@@ -47,6 +47,7 @@ extern const NSString *BK_KEYTYPE_Ed25519;
 
 + (NSArray<NSString *> *)supportedKeyTypes;
 + (void)importPrivateKey:(NSString *)privateKey controller:(UIViewController *)controller andCallback: (void(^)(Pki *))callback;
+- (BOOL)isValidPrivateKey;
 
 @end
 
