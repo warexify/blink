@@ -37,16 +37,26 @@ extern const NSString *BK_KEYTYPE_DSA;
 extern const NSString *BK_KEYTYPE_ECDSA;
 extern const NSString *BK_KEYTYPE_Ed25519;
 
+@protocol BKPassphraseHolder <NSObject>
+
+@property NSString *tempKeyPasspharse;
+
+@end
+
 @interface Pki : NSObject
+
+@property NSString *passphrase;
+@property NSString *originalPrivateKey;
 
 - (Pki *)initRSAWithLength:(int)bits;
 - (Pki *)initWithType:(NSString *)type andBits:(int)bits;
 - (NSString *)privateKey;
+
 - (NSString *)publicKeyWithComment:(NSString*)comment;
 - (const NSString *)keyTypeName;
 
 + (NSArray<NSString *> *)supportedKeyTypes;
-+ (void)importPrivateKey:(NSString *)privateKey controller:(UIViewController *)controller andCallback: (void(^)(Pki *))callback;
++ (void)importPrivateKey:(NSString *)privateKey controller:(UIViewController<BKPassphraseHolder> *)controller andCallback: (void(^)(Pki *))callback;
 - (BOOL)isValidPrivateKey;
 
 @end
@@ -61,13 +71,14 @@ extern const NSString *BK_KEYTYPE_Ed25519;
 + (instancetype)withID:(NSString *)ID;
 + (void)loadIDS;
 + (BOOL)saveIDS;
-+ (id)saveCard:(NSString *)ID privateKey:(NSString *)privateKey publicKey:(NSString *)publicKey;
++ (id)saveCard:(NSString *)ID privateKey:(NSString *)privateKey publicKey:(NSString *)publicKey passphrase:(NSString *)passphrase;
 + (NSMutableArray *)all;
 + (NSInteger)count;
 - (BOOL)isEncrypted;
 
 - (NSString *)publicKey;
 - (NSString *)privateKey;
+- (NSString *)passphrase;
 
 @end
 

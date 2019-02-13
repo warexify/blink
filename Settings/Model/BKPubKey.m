@@ -53,7 +53,8 @@ static UICKeyChainStore *Keychain = nil;
 
 int __ssh_auth_callback (const char *prompt, char *buf, size_t len,
                                   int echo, int verify, void *userdata) {
-  UIViewController *controller = (__bridge UIViewController *)userdata;
+  UIViewController<BKPassphraseHolder> *controller = (__bridge UIViewController<BKPassphraseHolder> *)userdata;
+  controller.tempKeyPasspharse = nil;
   __block NSString *result = NULL;
   
   dispatch_semaphore_t dsema = dispatch_semaphore_create(0);
@@ -84,7 +85,7 @@ int __ssh_auth_callback (const char *prompt, char *buf, size_t len,
   if (!result) {
     return SSH_ERROR;
   }
-  
+  controller.tempKeyPasspharse = result;
   [result getBytes:buf
          maxLength:len
         usedLength:nil
@@ -99,29 +100,34 @@ int __ssh_auth_callback (const char *prompt, char *buf, size_t len,
 - (BOOL)isValidPrivateKey {
   ssh_key ssh_key = NULL;
   NSString *privKey = self.privateKey;
-  NSLog(@"%@", privKey);
-  int rc = ssh_pki_import_privkey_base64(privKey.UTF8String, NULL, NULL, NULL, &ssh_key);
+  int rc = ssh_pki_import_privkey_base64(privKey.UTF8String, _passphrase.UTF8String, NULL, NULL, &ssh_key);
   if (ssh_key) {
     ssh_key_free(ssh_key);
   }
   return rc == SSH_OK;
 }
 
-+ (void)importPrivateKey:(NSString *)privateKey controller:(UIViewController *)controller andCallback: (void(^)(Pki *))callback
++ (void)importPrivateKey:(NSString *)privateKey controller:(UIViewController<BKPassphraseHolder> *)controller andCallback: (void(^)(Pki *))callback
 {
   dispatch_async(dispatch_get_global_queue(0, 0), ^{
     ssh_key ssh_key = NULL;
+    
     int rc = ssh_pki_import_privkey_base64(privateKey.UTF8String, NULL, __ssh_auth_callback, (__bridge void *)controller, &ssh_key);
     if (rc != SSH_OK) {
       dispatch_async(dispatch_get_main_queue(), ^{
+        controller.tempKeyPasspharse = nil;
         callback(nil);
       });
       return;
     }
     
-    Pki *pki = [[Pki alloc] init];
-    pki->_ssh_key = ssh_key;
     dispatch_async(dispatch_get_main_queue(), ^{
+      Pki *pki = [[Pki alloc] init];
+      pki->_passphrase = controller.tempKeyPasspharse;
+      controller.tempKeyPasspharse = nil;
+      pki->_originalPrivateKey = privateKey;
+      pki->_ssh_key = ssh_key;
+      
       callback(pki);
     });
   });
@@ -189,6 +195,10 @@ int __ssh_auth_callback (const char *prompt, char *buf, size_t len,
 
 - (NSString *)privateKey
 {
+  if (_originalPrivateKey) {
+    return _originalPrivateKey;
+  }
+  
   char *b64_key = NULL;
   
   int rc =ssh_pki_export_privkey_base64(_ssh_key, NULL, NULL, NULL, &b64_key);
@@ -279,20 +289,35 @@ int __ssh_auth_callback (const char *prompt, char *buf, size_t len,
     // Initialize the structure if it doesn't exist, with a default id_rsa key
     Identities = [[NSMutableArray alloc] init];
     Pki *defaultKey = [[Pki alloc] initRSAWithLength:4096];
-    [self saveCard:@"id_rsa" privateKey:defaultKey.privateKey publicKey:[defaultKey publicKeyWithComment:@""]];
+    [self saveCard:@"id_rsa"
+        privateKey:defaultKey.privateKey
+         publicKey:[defaultKey publicKeyWithComment:@""]
+        passphrase:defaultKey.passphrase];
   }
 }
 
-+ (id)saveCard:(NSString *)ID privateKey:(NSString *)privateKey publicKey:(NSString *)publicKey
++ (id)saveCard:(NSString *)ID privateKey:(NSString *)privateKey publicKey:(NSString *)publicKey passphrase:(NSString *)passphrase
 {
   if (!privateKey || !publicKey) {
     return nil;
   }
   // Save privateKey to storage
   // If the card already exists, then it is replaced
-  NSString *privateKeyRef = [ID stringByAppendingString:@".pem"];
+//  NSString *privateKeyRef = [ID stringByAppendingString:@".pem"];
+  NSString *privateKeyRef = [ID stringByAppendingString:@".json"];
+  NSDictionary *keyJson = @{
+                            @"pass": passphrase.length ? passphrase : NSNull.null,
+                            @"key": privateKey
+                            };
   NSError *error;
-  if (![Keychain setString:privateKey forKey:privateKeyRef error:&error]) {
+  NSData *keyJsonData = [NSJSONSerialization dataWithJSONObject:keyJson options:kNilOptions error:&error];
+  if (!keyJsonData) {
+    NSLog(@"Error writing key to json: %@", error);
+  }
+  
+  //  if (![Keychain setString:privateKey forKey:privateKeyRef error:&error]) {
+  if (![Keychain setData:keyJsonData forKey:privateKeyRef error: &error]) {
+    NSLog(@"Error writing key data to keychain: %@", error);
     return nil;
   }
 
@@ -337,12 +362,11 @@ int __ssh_auth_callback (const char *prompt, char *buf, size_t len,
 - (id)initWithID:(NSString *)ID privateKeyRef:(NSString *)privateKeyRef publicKey:(NSString *)publicKey
 {
   self = [self init];
-  if (self == nil)
-    return nil;
-
-  _ID = ID;
-  _privateKeyRef = privateKeyRef;
-  _publicKey = publicKey;
+  if (self) {
+    _ID = ID;
+    _privateKeyRef = privateKeyRef;
+    _publicKey = publicKey;
+  }
 
   return self;
 }
@@ -354,7 +378,40 @@ int __ssh_auth_callback (const char *prompt, char *buf, size_t len,
 
 - (NSString *)privateKey
 {
-  return [Keychain stringForKey:_privateKeyRef];
+  if ([_privateKeyRef hasSuffix:@".pem"]) {
+    return [Keychain stringForKey:_privateKeyRef];
+  }
+  if ([_privateKeyRef hasSuffix:@".json"]) {
+    NSData *jsonData = [Keychain dataForKey:_privateKeyRef];
+    if (!jsonData) {
+      return nil;
+    }
+    NSDictionary * json = [NSJSONSerialization JSONObjectWithData:jsonData options:kNilOptions error:nil];
+    if (!json) {
+      return nil;
+    }
+    return json[@"key"];
+  }
+  
+  return nil;
+}
+
+- (NSString *)passphrase {
+  if (![_privateKeyRef hasSuffix:@".json"]) {
+    return nil;
+  }
+  
+  NSData *jsonData = [Keychain dataForKey:_privateKeyRef];
+  if (!jsonData) {
+    return nil;
+  }
+  
+  NSDictionary * json = [NSJSONSerialization JSONObjectWithData:jsonData options:kNilOptions error:nil];
+  if (!json) {
+    return nil;
+  }
+  id pass = json[@"pass"];
+  return pass == NSNull.null ? nil : pass;
 }
 
 - (BOOL)isEncrypted

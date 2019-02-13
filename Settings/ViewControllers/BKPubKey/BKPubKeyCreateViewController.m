@@ -145,7 +145,10 @@ typedef NS_ENUM(NSInteger, ROW_ID) {
       _key = [[Pki alloc] initWithType:_currentType andBits:bits];
     }
     
-    _pubkey = [BKPubKey saveCard:_nameTextField.text privateKey:_key.privateKey publicKey:[_key publicKeyWithComment:_commentsTextField.text]];
+    _pubkey = [BKPubKey saveCard:_nameTextField.text
+                      privateKey:_key.privateKey
+                       publicKey:[_key publicKeyWithComment:_commentsTextField.text]
+                      passphrase:_key.passphrase];
     
     if (!_pubkey) {
       errorMsg = @"OpenSSL error. Could not create Public Key.";

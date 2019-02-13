@@ -254,6 +254,11 @@ add_file(int agent_fd, const char *filename, int key_only, int qflag)
             filename, ssh_err(r));
     goto fail_load;
   }
+  
+  const char *savedPassphrase = pk.passphrase.UTF8String;
+  if (savedPassphrase) {
+    pass = strdup(savedPassphrase);
+  }
   /* try last */
   if (private == NULL && pass != NULL) {
     if ((r = sshkey_parse_private_fileblob(keyblob, pass, &private,

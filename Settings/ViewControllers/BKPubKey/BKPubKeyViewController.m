@@ -37,13 +37,15 @@
 #import "BKPubKeyViewController.h"
 
 
-@interface BKPubKeyViewController () <BKPubKeyCreateViewControllerDelegate>
+@interface BKPubKeyViewController () <BKPubKeyCreateViewControllerDelegate, BKPassphraseHolder>
 
 @end
 
 @implementation BKPubKeyViewController {
   BOOL _selectable;
 }
+
+@synthesize tempKeyPasspharse;
 
 - (void)viewDidLoad
 {

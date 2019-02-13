@@ -580,9 +580,12 @@ static void kbd_callback(const char *name, int name_len,
     }
     
     char *passphrase = NULL;
-
-    // Request passphrase from user
-    if ([pk isEncrypted]) {
+    const char *savedPassphrase = pk.passphrase.UTF8String;
+    
+    if (savedPassphrase) {
+      passphrase = strdup(savedPassphrase);
+    } else if ([pk isEncrypted]) {
+      // Request passphrase from user
       [_device setSecureTextEntry:YES];
       fprintf(_device.stream.out, "Enter your passphrase for key '%s':", [pk.ID UTF8String]);
       [self promptUser:&passphrase];

@@ -520,7 +520,7 @@ int __ssh_auth_fn(const char *prompt, char *buf, size_t len,
     if (secureKey) {
       [self _log_verbose:[NSString stringWithFormat:@"import key %@\n", identityfile]];
       rc =  ssh_pki_import_privkey_base64(secureKey.privateKey.UTF8String,
-                                         NULL, /* TODO: get stored */
+                                         secureKey.passphrase.UTF8String,
                                          __ssh_auth_fn,
                                          (__bridge void *) self,
                                          &pkey);
