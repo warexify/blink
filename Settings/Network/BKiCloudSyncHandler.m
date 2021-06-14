@@ -42,7 +42,7 @@
 
 NSString const *BKiCloudSyncDeletedHosts = @"deletedHosts";
 NSString const *BKiCloudSyncDeletedKeys = @"deletedKeys";
-NSString *BKiCloudContainerIdentifier = @"iCloud.com.carloscabanero.blinkshell";
+NSString *BKiCloudContainerIdentifier = @"iCloud.org.warexify.blinkshell";
 NSString *BKiCloudZoneName = @"DefaultZone";
 
 static NSMutableDictionary *syncItems = nil;
@@ -326,7 +326,7 @@ static BKiCloudSyncHandler *sharedHandler = nil;
 }
 
 //- (void)createNewKey:(BKPubKey*)key{
-//  CKDatabase *database = [[CKContainer containerWithIdentifier:@"iCloud.com.carloscabanero.blinkshell"]privateCloudDatabase];
+//  CKDatabase *database = [[CKContainer containerWithIdentifier:@"iCloud.org.warexify.blinkshell"]privateCloudDatabase];
 //  CKRecord *keyRecord = [BKPubKey recordFromHost:key];
 //  [database saveRecord:hostRecord completionHandler:^(CKRecord * _Nullable record, NSError * _Nullable error) {
 //    [BKHosts saveHost:host.host withiCloudId:record.recordID andLastModifiedTime:record.modificationDate];
